@@ -224,7 +224,10 @@ def train_opts(parser):
     """ Training and saving options """
 
     group = parser.add_argument_group('General')
-    group.add_argument('-data', required=True,
+    group.add_argument('-config',
+                       help="""path to load all opt arguments from a JSON file""")
+
+    group.add_argument('-data',
                        help="""Path prefix to the ".train.pt" and
                        ".valid.pt" file path from preprocess.py""")
 

@@ -8,6 +8,7 @@ import argparse
 import os
 import random
 import torch
+import json, sys
 
 import onmt.opts as opts
 
@@ -25,7 +26,8 @@ def _check_save_model_path(opt):
     model_dirname = os.path.dirname(save_model_path)
     if not os.path.exists(model_dirname):
         os.makedirs(model_dirname)
-
+    with open(os.path.join(model_dirname, 'opt.json'),'w+') as fout:
+        json.dump(vars(opt), fout, sort_keys=True, indent=4)
 
 def _tally_parameters(model):
     n_params = sum([p.nelement() for p in model.parameters()])
@@ -72,6 +74,11 @@ def training_opt_postprocessing(opt):
 def main(opt):
     opt = training_opt_postprocessing(opt)
     init_logger(opt.log_file)
+    logger.info("Running %s" % ' '.join(sys.argv))
+    if opt.config:
+        logger.info("Loading opts from config file = %s"%opt.config)
+        with open(opt.config, 'r') as fin:
+            opt.__dict__.update(json.load(fin))
     # Load checkpoint if we resume from a previous training.
     if opt.train_from:
         logger.info('Loading checkpoint from %s' % opt.train_from)
