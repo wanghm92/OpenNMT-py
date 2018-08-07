@@ -333,7 +333,7 @@ class InputFeedRNNDecoder(RNNDecoderBase):
             if self.context_gate is not None:
                 # TODO: context gate should be employed
                 # instead of second RNN transform.
-                decoder_output = self.context_gate(
+                decoder_output = self.z(
                     decoder_input, rnn_output, decoder_output
                 )
             decoder_output = self.dropout(decoder_output)

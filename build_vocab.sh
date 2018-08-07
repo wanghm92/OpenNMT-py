@@ -1,0 +1,1 @@
+python preprocess.py -train_src ~/recom_nlg/onmt/clothes/one_per_sku/recom_text.onmtpy.train -train_tgt ~/recom_nlg/onmt/clothes/one_per_sku/recom_text.outs.train -valid_src ~/recom_nlg/onmt/clothes/one_per_sku/recom_text.onmtpy.val -valid_tgt ~/recom_nlg/onmt/clothes/one_per_sku/recom_text.outs.val -save_data data/recom_nlg/recom_nlg -share_vocab

@@ -34,6 +34,7 @@ def build_embeddings(opt, word_dict, feature_dicts, for_encoder=True):
         feature_dicts([Vocab], optional): a list of feature dictionary.
         for_encoder(bool): build Embeddings for encoder or decoder?
     """
+    logger.info(' >> [model_builder.py build_embeddings] for_encoder = %s'%for_encoder)
     if for_encoder:
         embedding_dim = opt.src_word_vec_size
     else:
@@ -41,12 +42,13 @@ def build_embeddings(opt, word_dict, feature_dicts, for_encoder=True):
 
     word_padding_idx = word_dict.stoi[inputters.PAD_WORD]
     num_word_embeddings = len(word_dict)
+    logger.info(' >> [model_builder.py build_embeddings] num_word_embeddings = %d'%num_word_embeddings)
 
     feats_padding_idx = [feat_dict.stoi[inputters.PAD_WORD]
                          for feat_dict in feature_dicts]
     num_feat_embeddings = [len(feat_dict) for feat_dict in
                            feature_dicts]
-
+    logger.info(' >> [model_builder.py build_embeddings] num_feat_embeddings: %d'%num_word_embeddings)
     return Embeddings(word_vec_size=embedding_dim,
                       position_encoding=opt.position_encoding,
                       feat_merge=opt.feat_merge,
@@ -67,6 +69,7 @@ def build_encoder(opt, embeddings):
         opt: the option in current environment.
         embeddings (Embeddings): vocab embeddings for this encoder.
     """
+    logger.info(' >> [model_builder.py build_encoder] opt.encoder_type = %s'%opt.encoder_type)
     if opt.encoder_type == "transformer":
         return TransformerEncoder(opt.enc_layers, opt.rnn_size,
                                   opt.heads, opt.transformer_ff,
@@ -79,6 +82,7 @@ def build_encoder(opt, embeddings):
         return MeanEncoder(opt.enc_layers, embeddings)
     else:
         # "rnn" or "brnn"
+        logger.info(' >> [model_builder.py build_encoder] brnn = %s, rnn_type = %s, bridge = %s' %(opt.brnn, opt.rnn_type, opt.bridge))
         return RNNEncoder(opt.rnn_type, opt.brnn, opt.enc_layers,
                           opt.rnn_size, opt.dropout, embeddings,
                           opt.bridge)
@@ -91,6 +95,7 @@ def build_decoder(opt, embeddings):
         opt: the option in current environment.
         embeddings (Embeddings): vocab embeddings for this decoder.
     """
+    logger.info(' >> [model_builder.py build_decoder] opt.decoder_type = %s (input_feed = %s)'%(opt.decoder_type, opt.input_feed))
     if opt.decoder_type == "transformer":
         return TransformerDecoder(opt.dec_layers, opt.rnn_size,
                                   opt.heads, opt.transformer_ff,
@@ -156,8 +161,10 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
         ("Unsupported model type %s" % (model_opt.model_type))
 
     # Build encoder.
+    logger.info(' >> [model_builder.py build_base_model] model_opt.model_type = %s'%model_opt.model_type)
     if model_opt.model_type == "text":
         src_dict = fields["src"].vocab
+        logger.info(' >> [model_builder.py build_base_model] feature_dicts = inputters.collect_feature_vocabs()')
         feature_dicts = inputters.collect_feature_vocabs(fields, 'src')
         src_embeddings = build_embeddings(model_opt, src_dict, feature_dicts)
         encoder = build_encoder(model_opt, src_embeddings)
@@ -182,11 +189,12 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
 
     # Share the embedding matrix - preprocess with share_vocab required.
     if model_opt.share_embeddings:
-        # src/tgt vocab should be the same if `-share_vocab` is specified.
+        logger.warning(' >> [model_builder.py build_base_model] src/tgt vocab should be the same if `-share_vocab` is specified.')
         if src_dict != tgt_dict:
             raise AssertionError('The `-share_vocab` should be set during '
                                  'preprocess if you use share_embeddings!')
 
+        logger.info(' >> [model_builder.py build_base_model] Replacing <tgt_embeddings.word_lut.weight> with <src_embeddings.word_lut.weight>')
         tgt_embeddings.word_lut.weight = src_embeddings.word_lut.weight
 
     decoder = build_decoder(model_opt, tgt_embeddings)
@@ -197,6 +205,7 @@ def build_base_model(model_opt, fields, gpu, checkpoint=None):
     model.model_type = model_opt.model_type
 
     # Build Generator.
+    logger.info(' >> [model_builder.py build_base_model] Build Generator ...')
     if not model_opt.copy_attn:
         generator = nn.Sequential(
             nn.Linear(model_opt.rnn_size, len(fields["tgt"].vocab)),

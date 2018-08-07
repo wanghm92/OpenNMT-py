@@ -95,10 +95,11 @@ def main(opt):
     data_type = first_dataset.data_type
 
     # Load fields generated from preprocess phase.
+    logger.info("Load fields generated from preprocess phase")
     fields = _load_fields(first_dataset, data_type, opt, checkpoint)
 
     # Report src/tgt features.
-
+    logger.info("collect_report_features")
     src_features, tgt_features = _collect_report_features(fields)
     for j, feat in enumerate(src_features):
         logger.info(' * src feature %d size = %d'
@@ -116,11 +117,15 @@ def main(opt):
     _check_save_model_path(opt)
 
     # Build optimizer.
+    logger.info("Build optimizer")
     optim = build_optim(model, opt, checkpoint)
 
     # Build model saver
+    logger.info("Build model saver")
     model_saver = build_model_saver(model_opt, opt, model, fields, optim)
 
+    # Build trainer
+    logger.info("Build trainer")
     trainer = build_trainer(
         opt, model, fields, optim, data_type, model_saver=model_saver)
 

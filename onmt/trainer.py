@@ -11,6 +11,7 @@
 
 from __future__ import division
 
+import sys
 import onmt.inputters as inputters
 import onmt.utils
 
@@ -165,6 +166,7 @@ class Trainer(object):
                                         n_minibatch %d"
                                         % (self.gpu_rank, reduce_counter,
                                            len(true_batchs)))
+                            sys.stdout.write("\033[F")
                         if self.n_gpu > 1:
                             normalization = sum(onmt.utils.distributed
                                                 .all_gather_list
@@ -248,8 +250,7 @@ class Trainer(object):
 
         return stats
 
-    def _gradient_accumulation(self, true_batchs, normalization, total_stats,
-                               report_stats):
+    def _gradient_accumulation(self, true_batchs, normalization, total_stats, report_stats):
         if self.grad_accum_count > 1:
             self.model.zero_grad()
 

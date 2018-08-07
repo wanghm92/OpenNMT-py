@@ -279,7 +279,6 @@ class TextDataset(DatasetBase):
         with codecs.open(corpus_file, "r", "utf-8") as cf:
             f_line = cf.readline().strip().split()
             _, _, num_feats = TextDataset.extract_text_features(f_line)
-
         return num_feats
 
     # Below are helper functions for intra-class use only.
